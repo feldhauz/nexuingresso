@@ -32,7 +32,7 @@
 - **Taxa de serviço:** **8% no Pix** e **9% no cartão** (mínimo R$ 2,00), mostrada de forma discriminada do anúncio ao comprovante (Decreto 13.108/2026).
 - O produtor escolhe **repassar ao comprador** (padrão) **ou absorver**.
 - **Gateway:** AbacatePay (CNPJ). Pix R$ 0,80; cartão 3,5%–4,5% + R$ 0,60.
-- **Repasse ao produtor:** D+2 úteis após o evento; antecipação parcial na F2.
+- **Repasse ao produtor:** **split automático** em cada venda, com saldo liberado após o evento (ver plano).
 - **Transferência de ingresso gratuita** e **revenda oficial com teto no preço de face**.
 
 ---
@@ -50,7 +50,7 @@ Objetivo: um produtor cria um evento, publica, vende via Pix/cartão e valida na
 | 5 | **Ingresso digital** | QR Code único por ingresso, e-mail de confirmação, "Meus ingressos" na conta, PDF, **transferência gratuita**, **botão de arrependimento (7 dias)** |
 | 6 | **Painel do produtor** | Criar/editar evento, vendas em tempo real, lista de participantes, exportar CSV |
 | 7 | **Check-in** | Leitor de QR pela web (câmera do celular), validação online, bloqueio de reuso |
-| 8 | **Financeiro** | Taxa 8% Pix / 9% cartão (repassa/absorve), extrato por evento, repasse via payout AbacatePay após o evento, reembolsos |
+| 8 | **Financeiro** | Taxa 8% Pix / 9% cartão (repassa/absorve), extrato por evento, **split AbacatePay** (taxa → plataforma, ingresso → produtor), reembolsos |
 | 9 | **Admin** | Aprovar produtores/eventos, ver pedidos, estornos, configurar taxas |
 | 10 | **Legal** | Termos de uso, política de privacidade (LGPD), política de reembolso (7 dias CDC) |
 
@@ -132,11 +132,12 @@ NexuIngresso
 - [MVP] **Pix** (QR dinâmico + copia-e-cola, confirmação automática)
 - [MVP] **Cartão de crédito** com parcelamento até 12x
 - [MVP] Taxa de serviço **8% Pix / 9% cartão**: **repassar ao comprador ou absorver**
-- [MVP] Extrato por evento e repasse automático D+2 após o evento (payout Pix AbacatePay)
+- [MVP] **Split de pagamento AbacatePay** em cada venda (taxa para a plataforma, ingresso para o produtor)
+- [MVP] Cadastro do produtor como recebedor do split (KYC) + extrato por evento
 - [MVP] Reembolso automático (arrependimento / cancelamento do evento) via API
 - [F2] Cartão de débito, Apple Pay, Google Pay
 - [F2] Boleto (com prazo de reserva)
-- [F2] Divisão de repasse (produtor, sócios, promoters) via payouts — split nativo só se migrar de gateway
+- [F2] Split com múltiplos recebedores (produtor, sócios, promoters)
 - [F2] **Antecipação de recebíveis** (D+0/D+1 com taxa)
 - [F2] Antifraude (análise de risco do cartão, 3DS)
 - [F2] Emissão de nota fiscal da taxa de serviço

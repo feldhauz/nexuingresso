@@ -47,27 +47,46 @@ Sem mensalidade.
 | Confirmação de pagamento | **Webhooks**: `transparent.completed`, `checkout.completed` |
 | Reembolso | `refund` + webhooks `*.refunded` |
 | Disputas | webhooks `*.disputed` / `*.lost` → bloquear ingresso |
-| Repasse ao produtor | **Payout / transferência Pix** + webhooks `payout.completed` / `payout.failed` |
+| Repasse ao produtor | **Split** na criação da cobrança (principal); payout Pix só para a reserva da opção B (§2.5) |
 | Testes | `simulate-payment` no modo dev |
 
 **Segurança do webhook:** validar o `webhookSecret` na query **e** a assinatura HMAC do corpo; processar de forma **idempotente** (guardar o ID do evento e ignorar repetidos).
 
-### 2.4 Limitação importante: sem split nativo
-A AbacatePay não divulga split de pagamento. Então o fluxo é:
+### 2.4 Split de pagamento (modelo principal)
+A AbacatePay tem **split**: o valor de cada venda é dividido automaticamente entre a NexuIngresso e o produtor (que tem sua própria conta/recebedor vinculado). A documentação pública ainda descreve o split como "em liberação"; **confirmar no painel/comercial os parâmetros exatos** (percentual ou valor fixo, quem paga a tarifa do gateway, se o valor do recebedor pode ficar retido até uma data).
 
 ```
-Comprador ──paga──▶ Conta AbacatePay (CNPJ NexuIngresso)
-                           │
-                           ├─ fica na plataforma: taxa de serviço − custo do gateway
-                           │
-                           └─ payout Pix ──▶ Produtor (após o evento, ver §4)
+Comprador ──paga R$ 108,00──▶ AbacatePay
+                                 │  split automático
+                                 ├─▶ NexuIngresso: R$ 8,00 (taxa)  − R$ 0,80 (tarifa Pix) = R$ 7,20
+                                 └─▶ Produtor:     R$ 100,00 (valor do ingresso)
 ```
 
-Consequências e cuidados:
-1. **Contrato com o produtor** (termo de adesão) dizendo que a NexuIngresso **intermedia a venda e recebe em nome do produtor**, com prazo de repasse, retenção para reembolsos e chargebacks, e a responsabilidade do produtor pelo evento.
-2. **Separação contábil:** o valor do ingresso é **do produtor** (repasse de terceiros). **Receita da NexuIngresso é só a taxa de serviço.** Isso reduz a base de impostos. Combinar com o contador.
-3. **Regulação do Banco Central:** uma plataforma que só intermedeia e repassa valores, com volume pequeno, em geral não precisa de autorização como instituição de pagamento. Isso muda com o crescimento. Rever com advogado quando o volume subir e, se for o caso, migrar para um gateway com **split/subcontas** (Asaas, Pagar.me, Mercado Pago).
-4. **Chave Pix do produtor:** só aceitar chave **com titularidade igual ao CPF/CNPJ cadastrado** (antifraude e KYC).
+Vantagens em relação ao "recebe tudo e repassa":
+1. **O dinheiro do ingresso nunca entra como receita da NexuIngresso.** A nota fiscal e os impostos incidem só sobre a taxa de serviço.
+2. **Menos risco regulatório (Banco Central):** a plataforma não fica guardando recursos de terceiros.
+3. **Sem custo de payout** de repasse (R$ 0,80 por saque) e sem conciliação manual.
+4. O produtor vê o próprio saldo na conta dele.
+
+Regras de configuração:
+- **Tarifa do gateway sai da parte da NexuIngresso.** O produtor recebe 100% do preço do ingresso (o que ele anunciou).
+- **Taxa absorvida pelo produtor:** o split manda à NexuIngresso a taxa calculada sobre o preço, e o produtor recebe o preço menos a taxa.
+- **Onboarding do produtor = criar o recebedor no split**, com KYC (documento, CPF/CNPJ, conta/chave Pix de mesma titularidade). Só depois disso o evento pode ser publicado.
+- Guardar no pedido o `split` enviado (recebedor + valor) para auditoria e conciliação.
+
+### 2.5 Risco do split: o produtor recebe antes do evento
+Com split, o dinheiro do produtor chega na hora da venda. Se o evento for cancelado, o Decreto 13.108/2026 obriga a **reembolso integral (ingresso + taxa)**, e a plataforma responde **solidariamente** (CDC). Mitigação, em ordem de preferência:
+
+| Opção | Como funciona | Quando usar |
+|---|---|---|
+| **A. Split com liberação agendada** | O valor do produtor fica no split mas só fica disponível para saque **D+2 após o evento** (se a AbacatePay permitir retenção/agenda do recebedor) | **Padrão**, se disponível |
+| **B. Split parcial + reserva** | Split imediato de **até 70–80%** ao produtor; os 20–30% restantes ficam na NexuIngresso e são transferidos após o evento | Se não houver retenção agendada |
+| **C. Split integral imediato** | 100% do ingresso direto ao produtor | Só para **produtores verificados** com histórico e contrato com garantia |
+
+Em todas as opções:
+- **Contrato do produtor** com obrigação de devolver valores de reembolsos, cancelamentos e chargebacks, e autorização para compensar em vendas futuras.
+- **Reembolso de arrependimento (7 dias)** sai do saldo do produtor (parte do ingresso) + da NexuIngresso (taxa). Confirmar com a AbacatePay como o `refund` de uma cobrança com split debita cada recebedor.
+- Disputas e MED também precisam ser debitadas proporcionalmente. Confirmar o comportamento.
 
 ---
 
@@ -94,7 +113,7 @@ Ingresso de **R$ 30,00** no Pix: taxa R$ 2,40, custo R$ 0,80, margem **R$ 1,60**
 
 **Recomendação:** colocar no checkout um **selo "Pague com Pix e economize"**. O Pix dá quase o dobro de margem e não tem chargeback de cartão.
 
-Dos valores acima ainda saem os **impostos sobre a taxa** (ISS + Simples ou Lucro Presumido) e o **custo dos payouts** (R$ 0,80 por repasse, diluído entre todos os ingressos do evento).
+Dos valores acima ainda saem os **impostos sobre a taxa** (ISS + Simples ou Lucro Presumido) (com split não há custo de payout de repasse).
 
 ### 3.3 Cortesias
 Como não haverá eventos gratuitos, cortesias são **ingressos emitidos pelo produtor dentro de um evento pago**:
@@ -108,12 +127,12 @@ Como não haverá eventos gratuitos, cortesias são **ingressos emitidos pelo pr
 | Etapa | Regra |
 |---|---|
 | Vendas | Entram na conta AbacatePay da NexuIngresso; o painel do produtor mostra o **saldo bloqueado** |
-| Repasse padrão | **D+2 úteis após o evento**, via payout Pix para a chave validada do produtor |
+| Repasse padrão | **Split** em cada venda; disponibilidade do saldo do produtor conforme opção A/B/C (§2.5) |
 | Antecipação (F2) | Até **50% do saldo antes do evento**, para produtores com histórico, com taxa de antecipação |
 | Reserva de segurança | Reter **10% do saldo por 30 dias** após o evento (chargebacks/MED), liberado depois |
 | Reembolsos | Abatidos do saldo do produtor; se não houver saldo, o produtor fica devedor (cláusula contratual) |
 
-Por que repassar só depois do evento: se o evento for **cancelado ou adiado**, o Decreto 13.108/2026 obriga a **devolução integral, inclusive das taxas**. Se o dinheiro já foi repassado, a plataforma assume o prejuízo e responde de forma solidária perante o consumidor (CDC, arts. 7º e 25).
+Por que segurar o saldo do produtor até depois do evento: se o evento for **cancelado ou adiado**, o Decreto 13.108/2026 obriga a **devolução integral, inclusive das taxas**. Se o dinheiro já foi repassado, a plataforma assume o prejuízo e responde de forma solidária perante o consumidor (CDC, arts. 7º e 25).
 
 ---
 
@@ -216,7 +235,9 @@ reservado ──(pagamento iniciado)──▶ aguardando_pagamento
 - `tickets` (titular, QR hash, status, histórico)
 - `ticket_transfers` / `resale_listings`
 - `refunds` (motivo: arrependimento/cancelamento/disputa)
-- `payouts` (produtor, valor, abacatepay_payout_id, status)
+- `split_recipients` (produtor, id do recebedor na AbacatePay, status KYC)
+- `order_splits` (pedido, recebedor, valor em centavos)
+- `payouts` (só para reservas da opção B)
 - `ledger_entries` (livro-razão: cada centavo, entrada e saída)
 - `webhook_events` (id único, payload, processado_em) → idempotência
 - `audit_logs` (imutável, para Procon/Senacon e Marco Civil)
@@ -240,7 +261,7 @@ reservado ──(pagamento iniciado)──▶ aguardando_pagamento
 | Produtor golpista | KYC, aprovação manual dos primeiros eventos, repasse pós-evento |
 | AbacatePay mudar regras ou recusar o modelo | Camada `PaymentProvider` abstrata no código para trocar de gateway sem reescrever |
 | Autuação do Procon | Conformidade com o Decreto 13.108 desde o MVP + logs de auditoria |
-| Crescimento exigir regulação do BC | Monitorar volume e migrar para gateway com split/subcontas |
+| Produtor sacar e o evento ser cancelado | Split com liberação agendada (opção A) ou reserva (opção B) + contrato |
 
 ---
 
