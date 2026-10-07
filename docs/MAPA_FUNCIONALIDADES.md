@@ -26,14 +26,14 @@
 | Vendo Meu Ingresso | a partir de 5% | Saque D+1 via Pix |
 | Ingresso Fly | não divulgada | Estimativa de mercado 10–15% |
 
-### 1.4 Proposta de preço NexuIngresso (diferencial)
-- **Eventos gratuitos:** R$ 0.
-- **Taxa padrão:** **7%** (mínimo R$ 2,50), com o produtor escolhendo **repassar ao comprador ou absorver**.
-- **Pix com desconto:** 5% para incentivar Pix (menor custo de processamento).
-- **Parcelamento no cartão:** juros repassados ao comprador (até 12x).
-- **Saque:** D+2 grátis; **antecipação D+0/D+1** com taxa extra (ex.: 1,5%).
-- **Plano Pro / negociação** para grandes produtores (> X mil ingressos/mês).
-- Taxa sempre **discriminada** no anúncio e no checkout (transparência / CDC).
+### 1.4 Proposta de preço NexuIngresso
+> Detalhes completos em [PLANO_PAGAMENTOS_E_LEGAL.md](./PLANO_PAGAMENTOS_E_LEGAL.md).
+- **Sem eventos gratuitos.** Todo evento tem ao menos um ingresso pago (mínimo R$ 10,00).
+- **Taxa de serviço:** **8% no Pix** e **9% no cartão** (mínimo R$ 2,00), mostrada de forma discriminada do anúncio ao comprovante (Decreto 13.108/2026).
+- O produtor escolhe **repassar ao comprador** (padrão) **ou absorver**.
+- **Gateway:** AbacatePay (CNPJ). Pix R$ 0,80; cartão 3,5%–4,5% + R$ 0,60.
+- **Repasse ao produtor:** D+2 úteis após o evento; antecipação parcial na F2.
+- **Transferência de ingresso gratuita** e **revenda oficial com teto no preço de face**.
 
 ---
 
@@ -46,15 +46,15 @@ Objetivo: um produtor cria um evento, publica, vende via Pix/cartão e valida na
 | 1 | **Contas** | Cadastro/login (e-mail + Google), perfil comprador, perfil produtor (CPF/CNPJ, dados bancários/Pix) |
 | 2 | **Vitrine** | Home com eventos em destaque, busca por nome/cidade/data, página do evento (banner, descrição, local com mapa, data, classificação etária) |
 | 3 | **Ingressos** | Tipos de ingresso (inteira, meia, VIP…), **lotes** com virada por data ou quantidade, limite por CPF |
-| 4 | **Checkout** | Carrinho, dados do titular, **Pix** (QR + copia-e-cola), **cartão** (parcelado), timer de reserva (10 min), cupom de desconto |
-| 5 | **Ingresso digital** | QR Code único por ingresso, e-mail de confirmação, "Meus ingressos" na conta, PDF |
+| 4 | **Checkout** | Carrinho, dados do titular, **Pix** (QR + copia-e-cola), **cartão** (parcelado), reserva de 15 min com preço congelado, preço + taxa discriminados, cupom de desconto |
+| 5 | **Ingresso digital** | QR Code único por ingresso, e-mail de confirmação, "Meus ingressos" na conta, PDF, **transferência gratuita**, **botão de arrependimento (7 dias)** |
 | 6 | **Painel do produtor** | Criar/editar evento, vendas em tempo real, lista de participantes, exportar CSV |
 | 7 | **Check-in** | Leitor de QR pela web (câmera do celular), validação online, bloqueio de reuso |
-| 8 | **Financeiro** | Cálculo de taxa (repassa/absorve), extrato por evento, solicitação de saque |
+| 8 | **Financeiro** | Taxa 8% Pix / 9% cartão (repassa/absorve), extrato por evento, repasse via payout AbacatePay após o evento, reembolsos |
 | 9 | **Admin** | Aprovar produtores/eventos, ver pedidos, estornos, configurar taxas |
 | 10 | **Legal** | Termos de uso, política de privacidade (LGPD), política de reembolso (7 dias CDC) |
 
-**Stack sugerida:** Next.js (front + API) · PostgreSQL · Prisma · gateway de pagamento (Mercado Pago / Pagar.me / Asaas — Pix + cartão + split) · Vercel · e-mail transacional (Resend).
+**Stack sugerida:** Next.js (front + API) · PostgreSQL · Prisma · **AbacatePay** (Pix + cartão, conta CNPJ) atrás de uma camada `PaymentProvider` trocável · Vercel · e-mail transacional (Resend).
 
 ---
 
@@ -76,13 +76,14 @@ NexuIngresso
 
 ### 3.1 Comprador
 - [MVP] Home com destaques, categorias (shows, festas, universitário, teatro, esportes, cursos, infantil)
-- [MVP] Busca e filtros: cidade, data, categoria, preço, gratuito
+- [MVP] Busca e filtros: cidade, data, categoria, faixa de preço
 - [MVP] Página do evento: banner, descrição, atrações/line-up, mapa (Google Maps), classificação etária, política do evento
 - [MVP] Cadastro/login social (Google, Apple) e por e-mail
 - [MVP] Carteira "Meus ingressos" com QR Code
 - [F2] Login por WhatsApp/SMS (OTP)
-- [F2] **Transferência de ingresso** para outra pessoa (troca de titularidade)
-- [F2] **Revenda oficial** entre usuários (marketplace seguro, com taxa)
+- [MVP] **Transferência gratuita de ingresso** com novo QR e histórico (obrigatória — Decreto 13.108/2026)
+- [MVP] **Canal de arrependimento** (cancelar em até 7 dias com reembolso integral)
+- [F2] **Revenda oficial** entre usuários, **teto no preço de face** (sem ágio), taxa do novo comprador
 - [F2] Ingresso no Apple Wallet / Google Wallet
 - [F2] Favoritar eventos e seguir produtores; alerta de "virada de lote"
 - [F2] Lista de espera para evento esgotado
@@ -95,7 +96,7 @@ NexuIngresso
 
 ### 3.2 Produtor (painel)
 - [MVP] Criar evento (presencial, online, híbrido), rascunho → publicado
-- [MVP] Tipos de ingresso: inteira, **meia-entrada** (com regra de comprovação), VIP, camarote, open bar, cortesia
+- [MVP] Tipos de ingresso: inteira, **meia-entrada** (alerta de cota mínima de 40%), VIP, camarote, open bar, cortesia (até 10% da carga, R$ 1,00 cada)
 - [MVP] **Lotes** com virada automática por data e/ou quantidade
 - [MVP] Limite por pedido e por CPF; data de início/fim de vendas
 - [MVP] Dashboard de vendas em tempo real
@@ -111,7 +112,7 @@ NexuIngresso
 - [F2] Duplicar evento
 - [F3] **White-label**: domínio próprio, cores e logo do produtor
 - [F3] Separação por **atléticas/organizações** (eventos universitários)
-- [F3] Inscrições gratuitas com aprovação manual (lista VIP / RSVP)
+- [F3] Lista VIP com aprovação manual (sempre vinculada a um evento pago)
 
 ### 3.3 Vendas & Marketing
 - [MVP] Cupons de desconto (% ou R$, limite de uso, validade)
@@ -130,13 +131,13 @@ NexuIngresso
 ### 3.4 Pagamentos & Financeiro
 - [MVP] **Pix** (QR dinâmico + copia-e-cola, confirmação automática)
 - [MVP] **Cartão de crédito** com parcelamento até 12x
-- [MVP] Taxa de serviço configurável: **repassar ao comprador ou absorver**
-- [MVP] Extrato por evento e solicitação de saque
+- [MVP] Taxa de serviço **8% Pix / 9% cartão**: **repassar ao comprador ou absorver**
+- [MVP] Extrato por evento e repasse automático D+2 após o evento (payout Pix AbacatePay)
+- [MVP] Reembolso automático (arrependimento / cancelamento do evento) via API
 - [F2] Cartão de débito, Apple Pay, Google Pay
 - [F2] Boleto (com prazo de reserva)
-- [F2] **Split de pagamento** automático (produtor, sócios, promoters, plataforma)
+- [F2] Divisão de repasse (produtor, sócios, promoters) via payouts — split nativo só se migrar de gateway
 - [F2] **Antecipação de recebíveis** (D+0/D+1 com taxa)
-- [F2] Reembolso/estorno pelo painel (total ou parcial)
 - [F2] Antifraude (análise de risco do cartão, 3DS)
 - [F2] Emissão de nota fiscal da taxa de serviço
 - [F3] Pix parcelado / "compre agora, pague depois"
@@ -173,12 +174,13 @@ NexuIngresso
 
 ### 3.8 Segurança, Legal & Infra
 - [MVP] LGPD: consentimento, exportar/excluir dados
-- [MVP] Termos, política de privacidade, **política de reembolso** (direito de arrependimento — 7 dias, até 48h antes do evento)
+- [MVP] Termos, política de privacidade, **política de reembolso** (arrependimento 7 dias; cancelamento/adiamento = reembolso integral com taxas)
+- [MVP] Rodapé com razão social, CNPJ, endereço e SAC (Decreto 7.962/2013); logs de auditoria (Decreto 13.108 e Marco Civil)
 - [MVP] Meia-entrada conforme Lei 12.933/2013 (cota de 40%)
 - [MVP] HTTPS, senhas com hash, rate limit, logs de auditoria
 - [F2] Autenticação em 2 fatores para produtores
-- [F2] **Fila virtual** para eventos de alta demanda
-- [F2] Proteção anti-bot / anti-cambista (captcha, limite por CPF/dispositivo)
+- [F2] **Fila virtual** com posição e tempo estimado (Decreto 13.108/2026)
+- [MVP] Proteção anti-bot (captcha, limite por CPF/pedido, rate limit) — exigida pelo Decreto 13.108/2026
 - [F3] Acessibilidade (WCAG), multi-idioma, multi-moeda
 - [F3] API pública e webhooks para integrações
 
@@ -193,10 +195,10 @@ NexuIngresso
 | **F3** | +3–6 meses | White-label, cashless/NFC, CRM e marketing, app nativo, API pública |
 
 ## 5. Diferenciais competitivos (posicionamento)
-1. **Taxa menor e transparente** (7% vs. 10–15%) e desconto no Pix.
-2. **Saque rápido** (D+2 grátis, D+0 com antecipação).
+1. **Taxa menor e transparente** (8–9% vs. 10–15%), mais barata no Pix e 100% conforme o Decreto 13.108/2026.
+2. **Repasse rápido** (D+2 após o evento, antecipação parcial para produtores com histórico).
 3. **Promoters + PDV físico** (força do Ingresso Fly) somados à experiência digital moderna.
-4. **Revenda oficial segura** contra cambista e golpe.
+4. **Transferência grátis + revenda oficial sem ágio** contra cambista e golpe.
 5. **Check-in offline** confiável mesmo sem internet no local.
 
 ---
