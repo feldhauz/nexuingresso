@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* Interface neutra, uma cor de marca. O amarelo só aparece sobre o azul. */
+:root {
+  --bg: #f4f5f8;
+  --surface: #ffffff;
+  --surface-2: #eceef3;
+  --ink: #0b1020;
+  --ink-2: #333a4d;
+  --muted: #5b6275;
+  --line: #e2e5ec;
+  --brand: #2b3bff;
+  --brand-strong: #1f2cd6;
+  /* Azul usado em texto e ícone: precisa de contraste próprio em cada tema. */
+  --brand-text: #2b3bff;
+  --brand-soft: #e8eaff;
+  --on-brand: #ffffff;
+  --accent: #ffd21f;
+  --good: #0f8a55;
+  --bad: #c9362a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0c14;
+    --surface: #141724;
+    --surface-2: #1c2030;
+    --ink: #f3f4f8;
+    --ink-2: #c6cad6;
+    --muted: #9198ab;
+    --line: #262b3c;
+    /* Com texto branco por cima, este azul passa de 4,5:1; o anterior não passava. */
+    --brand: #4f5cff;
+    --brand-strong: #3f4bf0;
+    --brand-text: #9aa2ff;
+    --brand-soft: #1b1f45;
+    --on-brand: #ffffff;
+    --good: #3ecf8e;
+    --bad: #ff6b5a;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-text: var(--brand-text);
+  --color-brand-soft: var(--brand-soft);
+  --color-on-brand: var(--on-brand);
+  --color-accent: var(--accent);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-brand px-6 font-semibold text-on-brand transition-[background-color,transform] duration-200 hover:bg-brand-strong active:scale-[0.98] disabled:cursor-default disabled:opacity-40 disabled:active:scale-100;
+  }
+  .btn-quiet {
+    @apply inline-flex h-12 cursor-pointer items-center justify-center rounded-xl border border-line bg-surface px-5 font-semibold text-ink transition-[background-color,transform] duration-200 hover:bg-surface-2 active:scale-[0.98] disabled:cursor-default disabled:opacity-40 disabled:active:scale-100;
+  }
+  .btn-link {
+    @apply inline-flex min-h-11 cursor-pointer items-center font-medium text-brand-text underline-offset-4 hover:underline disabled:opacity-40;
+  }
+  .field {
+    @apply h-12 w-full min-w-0 rounded-xl border border-line bg-surface px-4 text-base text-ink transition-colors duration-200 placeholder:text-muted hover:border-muted focus:border-brand;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-ink-2;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-surface shadow-[0_1px_2px_rgb(11_16_32/0.04)];
+  }
+  .title {
+    @apply font-display text-3xl font-bold tracking-tight text-ink;
+  }
+  .subtitle {
+    @apply font-display text-xl font-semibold text-ink;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+  }
+}
